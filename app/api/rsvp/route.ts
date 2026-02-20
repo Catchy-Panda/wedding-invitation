@@ -1,16 +1,25 @@
 import { Client } from "@notionhq/client";
 import { NextResponse } from "next/server";
 
-const notion = new Client({ auth: process.env.NOTION_API_KEY });
-const databaseId = process.env.NOTION_RSVP_DATABASE_ID!;
-
 export async function POST(request: Request) {
   try {
+    const apiKey = process.env.NOTION_API_KEY;
+    const databaseId = process.env.NOTION_RSVP_DATABASE_ID;
+
+    if (!apiKey || !databaseId) {
+      return NextResponse.json(
+        { error: "서버 환경변수가 설정되지 않았습니다.", detail: { apiKey: !!apiKey, databaseId: !!databaseId } },
+        { status: 500 }
+      );
+    }
+
+    const notion = new Client({ auth: apiKey });
+
     const { name, side, attendance, message } = await request.json();
 
     if (!name || !side || !attendance) {
       return NextResponse.json(
-        { error: "모든 필드를 입력해주세요." },
+        { error: "모든 필드를 입력해주세요.", detail: { name: !!name, side: !!side, attendance: !!attendance } },
         { status: 400 }
       );
     }
@@ -34,10 +43,15 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("RSVP submission error:", error);
+  } catch (error: unknown) {
+    const errBody = error instanceof Error ? error.message : String(error);
+    const notionCode = (error as { code?: string }).code;
+    const notionStatus = (error as { status?: number }).status;
+
+    console.error("RSVP submission error:", JSON.stringify({ errBody, notionCode, notionStatus }));
+
     return NextResponse.json(
-      { error: "제출 중 오류가 발생했습니다." },
+      { error: "제출 중 오류가 발생했습니다.", detail: errBody, code: notionCode, status: notionStatus },
       { status: 500 }
     );
   }
