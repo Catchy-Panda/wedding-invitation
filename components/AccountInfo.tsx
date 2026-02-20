@@ -92,9 +92,6 @@ export default function AccountInfo() {
           <h2 className="font-[var(--font-noto-sans-kr)] text-[22px] font-bold text-center text-[#333] mb-2">
             마음 전하실 곳
           </h2>
-          <p className="text-center text-[12px] tracking-[2px] text-[#999] uppercase mb-8">
-            Gift
-          </p>
 
           {/* Tabs */}
           <div className="flex rounded-lg overflow-hidden border border-[#E0E0D8] mb-5">
