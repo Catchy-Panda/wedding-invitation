@@ -38,7 +38,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "임영수 ♥ 정평화의 피로연에 초대합니다!",
     description: "2026년 3월 7일 토요일 오후 6시 30분 | D'Maris An Phu, Ho Chi Minh City",
-    images: ["/og-image.svg"],
+    images: ["/og-image-v2.svg"],
     type: "website",
   },
 };
