@@ -41,12 +41,7 @@ export default function WeddingAirways() {
           </div>
 
           {/* Bottom banner */}
-          <div className="bg-[#B5BFA1] px-5 py-4">
-            <p className="text-[9px] tracking-[2px] text-white/70 uppercase mb-1">
-              Name of Passenger:
-            </p>
-            <div className="border-b border-dashed border-white/40 h-[20px]" />
-          </div>
+          <div className="bg-[#B5BFA1] px-5 py-4" />
         </div>
       </ScrollAnimation>
     </section>
