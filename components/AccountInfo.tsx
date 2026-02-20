@@ -89,7 +89,7 @@ export default function AccountInfo() {
     <section className="py-16 px-4">
       <ScrollAnimation>
         <div className="max-w-[380px] mx-auto">
-          <h2 className="font-[var(--font-noto-sans-kr)] text-[22px] font-bold text-center text-[#333] mb-2">
+          <h2 className="font-[var(--font-noto-sans-kr)] text-[22px] font-bold text-center text-[#333] mb-8">
             마음 전하실 곳
           </h2>
 
