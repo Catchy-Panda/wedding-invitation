@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.NOTION_API_KEY;
-    const databaseId = process.env.NOTION_RSVP_DATABASE_ID;
+    const apiKey = process.env.NOTION_API_KEY?.trim();
+    const databaseId = process.env.NOTION_RSVP_DATABASE_ID?.trim();
 
     if (!apiKey || !databaseId) {
       return NextResponse.json(
