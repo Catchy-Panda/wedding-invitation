@@ -71,12 +71,6 @@ export default function BoardingPass() {
               </span>
             </div>
 
-            {/* Passenger */}
-            <div className="mb-4">
-              <p className="text-[9px] tracking-[2px] text-[#999]">PASSENGER NAME</p>
-              <div className="border-b border-dotted border-[#ccc] h-[24px] mt-1" />
-            </div>
-
             {/* Couple names */}
             <div className="flex items-center justify-center gap-4 py-4 mb-4">
               <div className="text-center">
