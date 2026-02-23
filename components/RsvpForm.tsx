@@ -40,9 +40,12 @@ export default function RsvpForm() {
     <section className="py-16 px-4">
       <ScrollAnimation>
         <div className="max-w-[380px] mx-auto">
-          <h2 className="font-[var(--font-noto-sans-kr)] text-[22px] font-bold text-center text-[#333] mb-2">
+          <h2 className="font-[var(--font-noto-sans-kr)] text-[22px] font-bold text-center text-[#333] mb-1">
             참석여부
           </h2>
+          <p className="text-[12px] text-[#999] text-center mb-4">
+            인원 파악을 위해 번거롭더라도 꼭 제출 부탁 드립니다
+          </p>
 
           <AnimatePresence mode="wait">
             {status === "success" ? (
