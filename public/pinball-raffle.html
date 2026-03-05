@@ -422,15 +422,19 @@ async function loadParticipants(){
   for(var i=0;i<urls.length;i++){
     try{
       st.textContent='불러오는 중... ('+(i+1)+'/'+urls.length+')';
+      console.log('[loadParticipants] trying:',urls[i]);
       var resp=await fetch(urls[i]);
-      if(!resp.ok)throw new Error('HTTP '+resp.status);
+      console.log('[loadParticipants] response status:',resp.status,resp.statusText);
+      if(!resp.ok){var errBody=await resp.text();console.error('[loadParticipants] error body:',errBody);throw new Error('HTTP '+resp.status+' - '+errBody.substring(0,200))}
       var data=await resp.json();
+      console.log('[loadParticipants] data:',JSON.stringify(data).substring(0,300));
       if(!data.names||!data.names.length){st.className='status error';st.textContent='참석자가 없습니다.';btn.disabled=false;return}
       participants=data.names;
       onParticipantsLoaded();
+      console.log('[loadParticipants] success:',participants.length+'명');
       btn.disabled=false;
       return;
-    }catch(err){lastErr=err;console.error('[loadParticipants] '+urls[i]+' failed:',err)}
+    }catch(err){lastErr=err;console.error('[loadParticipants] '+urls[i]+' failed:',err.message||err)}
   }
   st.className='status error';st.textContent='자동 불러오기 실패 — 아래에서 직접 입력해주세요.';
   document.getElementById('manualWrap').style.display='';

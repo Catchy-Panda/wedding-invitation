@@ -1,5 +1,15 @@
 import { NextResponse } from 'next/server';
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+}
+
 export async function GET() {
   const NOTION_TOKEN = process.env.NOTION_API_KEY;
   const DB_ID = process.env.NOTION_RSVP_DATABASE_ID;
@@ -10,7 +20,7 @@ export async function GET() {
   console.log('[raffle-list] Fetch URL:', `https://api.notion.com/v1/databases/${DB_ID}/query`);
 
   if (!NOTION_TOKEN || !DB_ID) {
-    return NextResponse.json({ error: '환경변수 없음', detail: `NOTION_API_KEY: ${!!NOTION_TOKEN}, NOTION_RSVP_DATABASE_ID: ${!!DB_ID}` }, { status: 500 });
+    return NextResponse.json({ error: '환경변수 없음', detail: `NOTION_API_KEY: ${!!NOTION_TOKEN}, NOTION_RSVP_DATABASE_ID: ${!!DB_ID}` }, { status: 500, headers: CORS_HEADERS });
   }
 
   const RETRY_DELAYS = [500, 1000];
@@ -57,7 +67,7 @@ export async function GET() {
       });
       if (!resp.ok) {
         const errText = await resp.text();
-        return NextResponse.json({ error: 'Notion API 오류', detail: errText }, { status: 500 });
+        return NextResponse.json({ error: 'Notion API 오류', detail: errText }, { status: 500, headers: CORS_HEADERS });
       }
       const data = await resp.json();
       data.results?.forEach((page: Record<string, unknown>) => {
@@ -68,9 +78,9 @@ export async function GET() {
       });
       cursor = data.has_more ? data.next_cursor : undefined;
     } while (cursor);
-    return NextResponse.json({ names: allNames, count: allNames.length });
+    return NextResponse.json({ names: allNames, count: allNames.length }, { headers: CORS_HEADERS });
   } catch (err) {
     console.error('[raffle-list] fetch error after retries:', err);
-    return NextResponse.json({ error: '서버 오류', detail: String(err), stack: err instanceof Error ? err.stack : undefined }, { status: 500 });
+    return NextResponse.json({ error: '서버 오류', detail: String(err), stack: err instanceof Error ? err.stack : undefined }, { status: 500, headers: CORS_HEADERS });
   }
 }
