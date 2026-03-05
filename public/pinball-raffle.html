@@ -306,13 +306,12 @@ function renderLoop(){
 
   // Winner detection
   if(gameRunning&&!gameFinished){
-    var slotsLeft=WINNER_COUNT-allWinners.length;
     balls.forEach(function(b){
       if(b.won||!b.body)return;
       if(b.body.position.y>FINISH_Y){
         b.won=true;b.wonTime=Date.now();
         arrivedOrder.push(b.name);
-        if(arrivedOrder.length<=slotsLeft){playWin();registerWinner(b.name)}
+        if(allWinners.length<WINNER_COUNT){playWin();registerWinner(b.name)}
         if(allWinners.length>=WINNER_COUNT){gameFinished=true;setTimeout(finishGame,800)}
       }
       // Remove balls way below
