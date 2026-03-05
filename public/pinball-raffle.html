@@ -480,12 +480,10 @@ function startGame(){
   document.getElementById('btnStart').disabled=true;
   document.getElementById('winnersCard').style.display='none';
   document.getElementById('winnersList').innerHTML='';
-  balls.forEach(function(b,i){
-    setTimeout(function(){
-      if(!b.body)return;
-      Matter.Body.setStatic(b.body,false);
-      Matter.Body.setVelocity(b.body,{x:(Math.random()-.5)*3,y:1+Math.random()*2});
-    },i*300);
+  balls.forEach(function(b){
+    if(!b.body)return;
+    Matter.Body.setStatic(b.body,false);
+    Matter.Body.setVelocity(b.body,{x:(Math.random()-.5)*6,y:-(8+Math.random()*6)});
   });
 }
 
