@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Wedding Airways - Pinball Raffle</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Noto+Sans+KR:wght@400;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#f5f0e8;font-family:'Noto Sans KR',sans-serif;color:#333;min-height:100vh;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.header{background:#4a6b5a;padding:14px 20px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.15);position:sticky;top:0;z-index:100}
+.header svg{flex-shrink:0}
+.header h1{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#c8a84b;letter-spacing:3px}
+.container{max-width:960px;margin:0 auto;padding:16px}
+.top-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.card-header{background:#8fa98b;padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.card-header h2{font-family:'Playfair Display',serif;font-size:13px;font-weight:700;color:#fff;letter-spacing:2px}
+.card-header .badge{font-size:8px;letter-spacing:1.5px;color:#c8a84b;border:1px solid #c8a84b;padding:2px 8px;border-radius:10px}
+.card-body{padding:16px}
+.tear-line{position:relative;height:0;margin:0 -1px}
+.tear-line::before{content:'';position:absolute;left:16px;right:16px;top:0;border-top:2px dashed #e0ddd5}
+.tear-line .cut-l,.tear-line .cut-r{position:absolute;width:20px;height:20px;background:#f5f0e8;border-radius:50%;top:-10px}
+.tear-line .cut-l{left:-10px}.tear-line .cut-r{right:-10px}
+.prize-list{display:flex;flex-direction:column;gap:8px}
+.prize-row{display:flex;align-items:center;gap:10px}
+.prize-rank{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:#fff;background:#4a6b5a;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.prize-rank.gold{background:#c8a84b}
+.prize-input{flex:1;border:1px solid #e0ddd5;border-radius:6px;padding:8px 12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s}
+.prize-input:focus{border-color:#8fa98b}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px;border:none;border-radius:8px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.btn:active{transform:scale(.97)}
+.btn-sage{background:#4a6b5a;color:#fff}.btn-sage:hover{background:#3d5a4c}
+.btn-sage:disabled,.btn-gold:disabled,.btn-amber:disabled{background:#ccc;cursor:not-allowed}
+.btn-gold{background:linear-gradient(135deg,#c8a84b,#b8961e);color:#fff}
+.btn-gold:hover{background:linear-gradient(135deg,#b8961e,#a8860e)}
+.btn-amber{background:#b8961e;color:#fff}.btn-amber:hover{background:#a8860e}
+.btn-outline{background:transparent;color:#4a6b5a;border:2px solid #4a6b5a}
+.btn-outline:hover{background:#4a6b5a;color:#fff}
+.status{font-size:12px;text-align:center;padding:8px;color:#999;font-family:'JetBrains Mono',monospace}
+.status.success{color:#4a6b5a}.status.error{color:#c0392b}
+.chips-wrap{display:none;flex-wrap:wrap;gap:6px;padding:10px 0 4px}
+.chips-wrap.show{display:flex}
+.chip{font-size:11px;font-weight:500;color:#4a6b5a;background:#eef2eb;border:1px solid #d5dccc;border-radius:20px;padding:4px 12px;white-space:nowrap}
+.game-row{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
+.game-col canvas{display:block;border-radius:12px;border:2px solid #d5d0c5;background:#faf6ee}
+.step-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:#999;margin-bottom:8px}
+.winners{display:none;flex-direction:column;gap:8px}
+.winners.show{display:flex}
+.winner-row{display:flex;align-items:center;gap:12px;background:#fff;border-radius:8px;padding:12px 16px;box-shadow:0 1px 4px rgba(0,0,0,.06);animation:slideIn .4s ease forwards;opacity:0}
+.winner-row .rank{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:#c8a84b;min-width:32px;text-align:center}
+.winner-row .rank.silver{color:#999}.winner-row .rank.bronze{color:#b87333}
+.winner-row .name{font-size:16px;font-weight:700;flex:1}
+.winner-row .prize-name{font-size:11px;color:#4a6b5a;font-weight:500}
+@keyframes slideIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}
+.confetti-piece{position:fixed;z-index:9999;pointer-events:none}
+.depth-bar{position:absolute;right:6px;top:10px;bottom:10px;width:4px;background:rgba(0,0,0,.08);border-radius:2px;pointer-events:none}
+.depth-pip{position:absolute;right:5px;width:6px;height:6px;background:#c8a84b;border-radius:50%;transition:top .3s;pointer-events:none}
+@media(max-width:760px){.top-row,.game-row{grid-template-columns:1fr}.container{padding:12px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="#c8a84b"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+  <h1>✈ Wedding Airways</h1>
+</div>
+
+<div class="container">
+  <div class="top-row">
+    <div class="card">
+      <div class="card-header"><h2>PASSENGERS</h2><span class="badge" id="countBadge">0 LOADED</span></div>
+      <div class="tear-line"><div class="cut-l"></div><div class="cut-r"></div></div>
+      <div class="card-body">
+        <div class="step-label">STEP 1</div>
+        <button class="btn btn-sage" id="btnLoad" onclick="loadParticipants()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+          참가자 명단 불러오기
+        </button>
+        <div class="status" id="status"></div>
+        <div class="chips-wrap" id="chipsWrap"></div>
+        <div id="manualWrap" style="display:none;padding-top:10px">
+          <div class="step-label">수동 입력 (이름을 줄바꿈으로 구분)</div>
+          <textarea id="manualNames" style="width:100%;min-height:100px;border:1px solid #e0ddd5;border-radius:6px;padding:8px 12px;font-size:13px;font-family:'Noto Sans KR',sans-serif;resize:vertical" placeholder="홍길동&#10;김철수&#10;이영희"></textarea>
+          <button class="btn btn-sage" style="margin-top:8px" onclick="applyManualNames()">이 명단으로 추가하기</button>
+        </div>
+        <div id="addWrap" style="display:none;padding-top:10px">
+          <div class="step-label">STEP 2</div>
+          <button class="btn btn-amber" id="btnAdd" onclick="addToBoard()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+            게임화면에 추가하기
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><h2>PRIZE SETTINGS</h2><span class="badge">RAFFLE</span></div>
+      <div class="tear-line"><div class="cut-l"></div><div class="cut-r"></div></div>
+      <div class="card-body">
+        <div class="prize-list">
+          <div class="prize-row"><div class="prize-rank gold">1</div><input class="prize-input" id="prize1" placeholder="1등 경품 입력"/></div>
+          <div class="prize-row"><div class="prize-rank gold">2</div><input class="prize-input" id="prize2" placeholder="2등 경품 입력"/></div>
+          <div class="prize-row"><div class="prize-rank">3</div><input class="prize-input" id="prize3" placeholder="3등 경품 입력"/></div>
+          <div class="prize-row"><div class="prize-rank">4</div><input class="prize-input" id="prize4" placeholder="4등 경품 입력"/></div>
+          <div class="prize-row"><div class="prize-rank">5</div><input class="prize-input" id="prize5" placeholder="5등 경품 입력"/></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-row">
+    <div class="game-col">
+      <div class="step-label">STEP 3</div>
+      <button class="btn btn-gold" id="btnStart" onclick="startGame()" disabled style="margin-bottom:12px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        게임 시작하기
+      </button>
+      <div style="position:relative;display:inline-block">
+        <canvas id="gameCanvas"></canvas>
+        <div class="depth-bar"></div>
+        <div class="depth-pip" id="depthPip" style="top:10px"></div>
+      </div>
+    </div>
+    <div>
+      <div class="card" id="winnersCard" style="display:none">
+        <div class="card-header"><h2>WINNERS</h2><span class="badge">🎉 CONGRATULATIONS</span></div>
+        <div class="tear-line"><div class="cut-l"></div><div class="cut-r"></div></div>
+        <div class="card-body"><div class="winners show" id="winnersList"></div></div>
+        <div class="card-body" style="padding-top:0"><button class="btn btn-outline" onclick="resetAll()">다시 추첨하기</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════
+// Constants
+// ════════════════════════════════════════
+var VW = 400, VH = 700, MAP_H = 3200;
+var NARROW = 0.03; // funnel narrowing rate (gentler for taller map)
+var FINISH_Y = MAP_H - 100;
+var BALL_R = 18, PIN_R = 5;
+var WINNER_COUNT = 5;
+var BALL_COLORS = ['#4a6b5a','#8fa98b','#c8a84b','#6b8e7b','#b8961e','#5a7b6a','#a5b591','#7b9e8b','#d4c060','#3d5a4c'];
+var SPINNER_DATA = [
+  {x:200,y:580,w:210,h:14,speed:0.020},
+  {x:190,y:1050,w:180,h:14,speed:-0.025},
+  {x:210,y:1520,w:150,h:14,speed:0.018},
+  {x:200,y:1990,w:120,h:14,speed:-0.022},
+];
+
+// ════════════════════════════════════════
+// State
+// ════════════════════════════════════════
+var participants = [];
+var engine, runner;
+var balls = [], wallBodies = [], pinBodies = [], spinnerBodies = [];
+var arrivedOrder = [];
+var gameRunning = false, gameFinished = false, ballsAdded = false;
+var cameraY = 350;
+var canvas, ctx, dpr;
+
+// ════════════════════════════════════════
+// Audio (Web Audio API)
+// ════════════════════════════════════════
+var audioCtx = null, lastPinSound = 0;
+function initAudio(){if(audioCtx)return;audioCtx=new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume()}
+function playPin(){
+  if(!audioCtx)return;var now=performance.now();if(now-lastPinSound<100)return;lastPinSound=now;
+  var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);
+  o.type='sine';var t=audioCtx.currentTime;
+  o.frequency.setValueAtTime(1200+Math.random()*600,t);o.frequency.exponentialRampToValueAtTime(800,t+.05);
+  g.gain.setValueAtTime(.08,t);g.gain.exponentialRampToValueAtTime(.001,t+.08);
+  o.start(t);o.stop(t+.08);
+}
+function playBar(){
+  if(!audioCtx)return;var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);
+  o.type='triangle';var t=audioCtx.currentTime;
+  o.frequency.setValueAtTime(250,t);o.frequency.exponentialRampToValueAtTime(120,t+.12);
+  g.gain.setValueAtTime(.15,t);g.gain.exponentialRampToValueAtTime(.001,t+.15);
+  o.start(t);o.stop(t+.15);
+}
+function playWin(){
+  if(!audioCtx)return;[523,659,784,1047].forEach(function(f,i){
+    var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);
+    o.type='square';var t=audioCtx.currentTime+i*.1;
+    o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.1,t+.02);
+    g.gain.exponentialRampToValueAtTime(.001,t+.2);o.start(t);o.stop(t+.2);
+  });
+}
+function playCelebration(){
+  if(!audioCtx)return;
+  var m=[523,523,784,784,880,880,784,0,698,698,659,659,587,587,523];
+  var h=[262,262,392,392,440,440,392,0,349,349,330,330,294,294,262];
+  function pv(ff,tp,vol){ff.forEach(function(f,i){if(!f)return;var o=audioCtx.createOscillator(),g=audioCtx.createGain();o.connect(g);g.connect(audioCtx.destination);o.type=tp;var t=audioCtx.currentTime+i*.12;o.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);g.gain.setValueAtTime(vol,t+.084);g.gain.exponentialRampToValueAtTime(.001,t+.12);o.start(t);o.stop(t+.13)})}
+  pv(m,'square',.08);pv(h,'sine',.06);
+}
+
+// ════════════════════════════════════════
+// Funnel helpers
+// ════════════════════════════════════════
+function wallL(y){return y*NARROW}
+function wallR(y){return VW-y*NARROW}
+
+// ════════════════════════════════════════
+// Physics setup
+// ════════════════════════════════════════
+function initPhysics(){
+  if(runner)Matter.Runner.stop(runner);
+  if(engine)Matter.Engine.clear(engine);
+  var E=Matter.Engine,B=Matter.Bodies,C=Matter.Composite,Ev=Matter.Events;
+  engine=E.create({gravity:{x:0,y:.6}});
+
+  wallBodies=[];pinBodies=[];spinnerBodies=[];
+
+  // Funnel walls (24 segments per side)
+  var segs=24,segH=MAP_H/segs,thick=30;
+  for(var i=0;i<segs;i++){
+    var cy=segH*(i+.5);
+    wallBodies.push(B.rectangle(wallL(cy)-thick/2+2,cy,thick,segH+6,{isStatic:true,friction:.1,restitution:.3}));
+    wallBodies.push(B.rectangle(wallR(cy)+thick/2-2,cy,thick,segH+6,{isStatic:true,friction:.1,restitution:.3}));
+  }
+  // Ceiling
+  wallBodies.push(B.rectangle(VW/2,-25,VW+100,50,{isStatic:true}));
+
+  // Pins: 12 rows
+  for(var r=0;r<12;r++){
+    var py=250+r*225;
+    var lx=wallL(py)+25,rx=wallR(py)-25,aw=rx-lx;
+    var np=r%2===0?4:3;
+    var sp=aw/(np+1);
+    for(var p=0;p<np;p++){
+      pinBodies.push(B.circle(lx+sp*(p+1),py,PIN_R,{isStatic:true,restitution:.6,friction:.05,label:'pin'}));
+    }
+  }
+
+  // Spinning bars
+  SPINNER_DATA.forEach(function(sd){
+    var bar=B.rectangle(sd.x,sd.y,sd.w,sd.h,{isStatic:true,restitution:.9,friction:.1,label:'spinner'});
+    bar._spinSpeed=sd.speed;
+    spinnerBodies.push(bar);
+  });
+
+  C.add(engine.world,wallBodies.concat(pinBodies,spinnerBodies));
+
+  // Rotate spinners each tick
+  Ev.on(engine,'beforeUpdate',function(){
+    spinnerBodies.forEach(function(s){Matter.Body.setAngle(s,s.angle+s._spinSpeed)});
+  });
+
+  // Collision sounds
+  Ev.on(engine,'collisionStart',function(ev){
+    if(!gameRunning)return;
+    ev.pairs.forEach(function(pair){
+      var a=pair.bodyA,b=pair.bodyB;
+      var ba=a.label&&a.label.indexOf('ball-')===0,bb=b.label&&b.label.indexOf('ball-')===0;
+      if(!ba&&!bb)return;
+      var other=ba?b:a;
+      if(other.label==='spinner')playBar();
+      else if(other.isStatic)playPin();
+    });
+  });
+
+  runner=Matter.Runner.create();
+  Matter.Runner.run(runner,engine);
+
+  arrivedOrder=[];gameFinished=false;balls=[];gameRunning=false;cameraY=350;
+}
+
+// ════════════════════════════════════════
+// Render loop (custom canvas)
+// ════════════════════════════════════════
+function initCanvas(){
+  canvas=document.getElementById('gameCanvas');
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  canvas.width=VW*dpr;canvas.height=VH*dpr;
+  canvas.style.width=VW+'px';canvas.style.height=VH+'px';
+  ctx=canvas.getContext('2d');
+}
+
+function renderLoop(){
+  // Camera: follow leading ball
+  if(gameRunning){
+    var leadY=0;
+    balls.forEach(function(b){if(!b.won&&b.body&&b.body.position.y>leadY)leadY=b.body.position.y});
+    if(leadY>0){
+      var target=Math.max(VH/2,Math.min(MAP_H-VH/2,leadY));
+      cameraY+=(target-cameraY)*.1;
+    }
+  }
+
+  // Winner detection
+  if(gameRunning&&!gameFinished){
+    balls.forEach(function(b){
+      if(b.won||!b.body)return;
+      if(b.body.position.y>FINISH_Y){
+        b.won=true;b.wonTime=Date.now();
+        arrivedOrder.push(b.name);
+        if(arrivedOrder.length<=WINNER_COUNT){playWin();updateWinnersLive()}
+        if(arrivedOrder.length>=WINNER_COUNT){gameFinished=true;setTimeout(finishGame,800)}
+      }
+      // Remove balls way below
+      if(b.won&&b.body&&b.body.position.y>MAP_H+200){
+        Matter.Composite.remove(engine.world,b.body);b.body=null;
+      }
+    });
+  }
+
+  // Depth indicator
+  var pip=document.getElementById('depthPip');
+  if(pip){var pct=(cameraY-VH/2)/(MAP_H-VH);pip.style.top=Math.max(10,Math.min(690,10+pct*680))+'px'}
+
+  // Draw
+  ctx.save();ctx.scale(dpr,dpr);
+
+  // Clear
+  ctx.fillStyle='#faf6ee';ctx.fillRect(0,0,VW,VH);
+
+  // Camera transform
+  ctx.save();
+  ctx.translate(0,-cameraY+VH/2);
+
+  // Funnel walls (smooth visual)
+  ctx.fillStyle='#c8c4b8';
+  ctx.beginPath();ctx.moveTo(-300,-200);ctx.lineTo(wallL(-200),-200);ctx.lineTo(wallL(MAP_H+200),MAP_H+200);ctx.lineTo(-300,MAP_H+200);ctx.closePath();ctx.fill();
+  ctx.beginPath();ctx.moveTo(VW+300,-200);ctx.lineTo(wallR(-200),-200);ctx.lineTo(wallR(MAP_H+200),MAP_H+200);ctx.lineTo(VW+300,MAP_H+200);ctx.closePath();ctx.fill();
+
+  // Wall inner edge highlight
+  ctx.strokeStyle='#8fa98b';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(wallL(0),0);ctx.lineTo(wallL(MAP_H),MAP_H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(wallR(0),0);ctx.lineTo(wallR(MAP_H),MAP_H);ctx.stroke();
+
+  // Pins
+  pinBodies.forEach(function(p){
+    ctx.beginPath();ctx.arc(p.position.x,p.position.y,PIN_R,0,Math.PI*2);ctx.fillStyle='#4a6b5a';ctx.fill();
+    ctx.beginPath();ctx.arc(p.position.x-1,p.position.y-1,2,0,Math.PI*2);ctx.fillStyle='#6b8e7b';ctx.fill();
+  });
+
+  // Spinners
+  spinnerBodies.forEach(function(s){
+    ctx.save();ctx.translate(s.position.x,s.position.y);ctx.rotate(s.angle);
+    var hw=s.bounds.max.x-s.bounds.min.x,hh=s.bounds.max.y-s.bounds.min.y;
+    // Use original dimensions from SPINNER_DATA
+    var sd=SPINNER_DATA[spinnerBodies.indexOf(s)];
+    ctx.fillStyle='#c8a84b';
+    ctx.shadowColor='rgba(200,168,75,.3)';ctx.shadowBlur=8;
+    ctx.fillRect(-sd.w/2,-sd.h/2,sd.w,sd.h);
+    ctx.shadowBlur=0;
+    ctx.fillStyle='#d4b85c';ctx.fillRect(-sd.w/2,-sd.h/2,sd.w,3);
+    ctx.restore();
+  });
+
+  // Finish line
+  ctx.save();
+  ctx.strokeStyle='#c8a84b';ctx.lineWidth=2;ctx.setLineDash([10,5]);ctx.globalAlpha=.6;
+  ctx.beginPath();ctx.moveTo(wallL(FINISH_Y)+10,FINISH_Y);ctx.lineTo(wallR(FINISH_Y)-10,FINISH_Y);ctx.stroke();
+  ctx.setLineDash([]);ctx.globalAlpha=1;
+  ctx.font='9px "JetBrains Mono",monospace';ctx.textAlign='center';ctx.fillStyle='#c8a84b';
+  ctx.fillText('ARRIVAL GATE',VW/2,FINISH_Y+16);
+  ctx.restore();
+
+  // Balls
+  balls.forEach(function(b){
+    if(!b.body)return;
+    var pos=b.body.position;
+    // Glow for winners
+    if(b.won){
+      ctx.save();
+      ctx.shadowColor='#c8a84b';ctx.shadowBlur=25;
+      ctx.beginPath();ctx.arc(pos.x,pos.y,BALL_R,0,Math.PI*2);ctx.fillStyle=b.color;ctx.fill();
+      ctx.shadowBlur=0;
+      // Bright ring
+      ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.globalAlpha=.8;
+      ctx.beginPath();ctx.arc(pos.x,pos.y,BALL_R+3,0,Math.PI*2);ctx.stroke();
+      ctx.globalAlpha=1;
+      ctx.restore();
+    }else{
+      ctx.beginPath();ctx.arc(pos.x,pos.y,BALL_R,0,Math.PI*2);ctx.fillStyle=b.color;ctx.fill();
+      // Subtle highlight
+      ctx.beginPath();ctx.arc(pos.x-4,pos.y-4,6,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,.25)';ctx.fill();
+    }
+    // Name
+    ctx.save();
+    ctx.font='bold 9px "Noto Sans KR",sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#fff';ctx.fillText(b.name,pos.x,pos.y);
+    ctx.restore();
+  });
+
+  ctx.restore(); // camera
+  ctx.restore(); // dpr
+
+  requestAnimationFrame(renderLoop);
+}
+
+// ════════════════════════════════════════
+// Game flow
+// ════════════════════════════════════════
+function onParticipantsLoaded(){
+  var st=document.getElementById('status');
+  st.className='status success';st.textContent='✓ '+participants.length+'명의 참가자를 불러왔습니다.';
+  document.getElementById('countBadge').textContent=participants.length+' LOADED';
+  var cw=document.getElementById('chipsWrap');cw.innerHTML='';
+  participants.forEach(function(n){var c=document.createElement('span');c.className='chip';c.textContent=n;cw.appendChild(c)});
+  cw.classList.add('show');
+  document.getElementById('manualWrap').style.display='none';
+  document.getElementById('addWrap').style.display='';
+  document.getElementById('btnAdd').disabled=false;
+  ballsAdded=false;document.getElementById('btnStart').disabled=true;
+  document.getElementById('winnersCard').style.display='none';
+  document.getElementById('winnersList').innerHTML='';
+  initPhysics();
+}
+
+async function loadParticipants(){
+  var btn=document.getElementById('btnLoad'),st=document.getElementById('status');
+  btn.disabled=true;st.className='status';st.textContent='불러오는 중...';
+  var urls=['/api/raffle-list','https://wedding-invitation-liard-xi.vercel.app/api/raffle-list'];
+  var lastErr=null;
+  for(var i=0;i<urls.length;i++){
+    try{
+      st.textContent='불러오는 중... ('+(i+1)+'/'+urls.length+')';
+      var resp=await fetch(urls[i]);
+      if(!resp.ok)throw new Error('HTTP '+resp.status);
+      var data=await resp.json();
+      if(!data.names||!data.names.length){st.className='status error';st.textContent='참석자가 없습니다.';btn.disabled=false;return}
+      participants=data.names;
+      onParticipantsLoaded();
+      btn.disabled=false;
+      return;
+    }catch(err){lastErr=err;console.error('[loadParticipants] '+urls[i]+' failed:',err)}
+  }
+  st.className='status error';st.textContent='자동 불러오기 실패 — 아래에서 직접 입력해주세요.';
+  document.getElementById('manualWrap').style.display='';
+  btn.disabled=false;
+}
+
+function applyManualNames(){
+  var text=document.getElementById('manualNames').value.trim();
+  if(!text){alert('이름을 입력해주세요.');return}
+  var names=text.split('\n').map(function(s){return s.trim()}).filter(function(s){return s.length>0});
+  if(!names.length){alert('유효한 이름이 없습니다.');return}
+  participants=names;
+  onParticipantsLoaded();
+}
+
+function addToBoard(){
+  if(!participants.length||ballsAdded)return;
+  var Bodies=Matter.Bodies,Comp=Matter.Composite;
+  var shuffled=participants.slice().sort(function(){return Math.random()-.5});
+  balls=[];arrivedOrder=[];gameFinished=false;
+  var cols=Math.ceil(Math.sqrt(shuffled.length*1.5));
+  var sp=34,startX=(VW-(cols-1)*sp)/2,startY=40;
+  shuffled.forEach(function(name,i){
+    var row=Math.floor(i/cols),col=i%cols;
+    var x=startX+col*sp+(row%2===1?sp/2:0);
+    var y=startY+row*sp;
+    x=Math.max(BALL_R+10,Math.min(VW-BALL_R-10,x));
+    var ci=i%BALL_COLORS.length;
+    var body=Bodies.circle(x,y,BALL_R,{isStatic:true,restitution:.5,friction:.05,density:.002,label:'ball-'+i});
+    body.participantName=name;
+    Comp.add(engine.world,body);
+    balls.push({body:body,name:name,won:false,wonTime:0,color:BALL_COLORS[ci]});
+  });
+  ballsAdded=true;
+  document.getElementById('btnAdd').disabled=true;
+  document.getElementById('btnStart').disabled=false;
+  cameraY=350;
+}
+
+function startGame(){
+  if(gameRunning||!ballsAdded)return;
+  initAudio();gameRunning=true;
+  document.getElementById('btnStart').disabled=true;
+  document.getElementById('winnersCard').style.display='none';
+  document.getElementById('winnersList').innerHTML='';
+  balls.forEach(function(b,i){
+    setTimeout(function(){
+      if(!b.body)return;
+      Matter.Body.setStatic(b.body,false);
+      Matter.Body.setVelocity(b.body,{x:(Math.random()-.5)*3,y:1+Math.random()*2});
+    },i*300);
+  });
+}
+
+function updateWinnersLive(){
+  var card=document.getElementById('winnersCard');card.style.display='';
+  var list=document.getElementById('winnersList');
+  var rank=arrivedOrder.length;if(rank>WINNER_COUNT)return;
+  var pe=document.getElementById('prize'+rank),prize=pe?pe.value:'';
+  var row=document.createElement('div');row.className='winner-row';
+  row.style.animationDelay=((rank-1)*.1)+'s';
+  var rc='';if(rank===2)rc='silver';else if(rank>=3)rc='bronze';
+  row.innerHTML='<div class="rank '+rc+'">'+rank+'</div><div class="name">'+esc(arrivedOrder[rank-1])+'</div><div class="prize-name">'+esc(prize)+'</div>';
+  list.appendChild(row);
+  if(rank<=2)fireConfetti();
+}
+
+function esc(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML}
+
+function finishGame(){
+  if(!gameRunning)return;gameRunning=false;
+  playCelebration();fireConfetti();fireConfetti();
+}
+
+function resetAll(){
+  document.getElementById('winnersCard').style.display='none';
+  document.getElementById('winnersList').innerHTML='';
+  ballsAdded=false;
+  if(participants.length>0){document.getElementById('btnAdd').disabled=false;document.getElementById('addWrap').style.display=''}
+  document.getElementById('btnStart').disabled=true;
+  initPhysics();
+}
+
+function fireConfetti(){
+  var colors=['#c8a84b','#4a6b5a','#8fa98b','#f5e6c8','#fff','#b8961e'];
+  for(var i=0;i<60;i++){
+    var el=document.createElement('div');el.className='confetti-piece';
+    el.style.cssText='left:'+Math.random()*100+'vw;top:-10px;width:'+(6+Math.random()*8)+'px;height:'+(6+Math.random()*8)+'px;background:'+colors[Math.floor(Math.random()*colors.length)]+';border-radius:'+(Math.random()>.5?'50%':'2px')+';opacity:'+(0.8+Math.random()*.2);
+    document.body.appendChild(el);
+    var dur=1500+Math.random()*2000,xd=(Math.random()-.5)*200,rot=Math.random()*720;
+    el.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate('+xd+'px,'+(window.innerHeight+20)+'px) rotate('+rot+'deg)',opacity:0}],{duration:dur,easing:'cubic-bezier(.25,.46,.45,.94)'}).onfinish=(function(e){return function(){e.remove()}})(el);
+  }
+}
+
+// ════════════════════════════════════════
+// Init
+// ════════════════════════════════════════
+initCanvas();
+initPhysics();
+renderLoop();
+</script>
+</body>
+</html>
