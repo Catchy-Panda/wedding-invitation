@@ -44,7 +44,8 @@ body{background:#f5f0e8;font-family:'Noto Sans KR',sans-serif;color:#333;min-hei
 .status.success{color:#4a6b5a}.status.error{color:#c0392b}
 .chips-wrap{display:none;flex-wrap:wrap;gap:6px;padding:10px 0 4px}
 .chips-wrap.show{display:flex}
-.chip{font-size:11px;font-weight:500;color:#4a6b5a;background:#eef2eb;border:1px solid #d5dccc;border-radius:20px;padding:4px 12px;white-space:nowrap}
+.chip{font-size:11px;font-weight:500;color:#4a6b5a;background:#eef2eb;border:1px solid #d5dccc;border-radius:20px;padding:4px 8px 4px 12px;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.chip-x{background:none;border:none;color:#999;font-size:13px;cursor:pointer;padding:0 2px;line-height:1;font-weight:700}.chip-x:hover{color:#c0392b}
 .start-row{margin-bottom:16px}
 .bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
 .game-col{position:relative;display:inline-block}
@@ -417,13 +418,25 @@ function onParticipantsLoaded(){
   st.className='status success';st.textContent='✓ '+participants.length+'명의 참가자를 불러왔습니다.';
   document.getElementById('countBadge').textContent=participants.length+' LOADED';
   var cw=document.getElementById('chipsWrap');cw.innerHTML='';
-  participants.forEach(function(n){var c=document.createElement('span');c.className='chip';c.textContent=n;cw.appendChild(c)});
+  participants.forEach(function(n){
+    var c=document.createElement('span');c.className='chip';
+    c.appendChild(document.createTextNode(n));
+    var x=document.createElement('button');x.className='chip-x';x.textContent='×';x.title='삭제';
+    x.onclick=function(){removeParticipant(n)};
+    c.appendChild(x);cw.appendChild(c);
+  });
   cw.classList.add('show');
   document.getElementById('manualWrap').style.display='none';
   document.getElementById('addWrap').style.display='';
   document.getElementById('btnAdd').disabled=false;
   ballsAdded=false;document.getElementById('btnStart').disabled=true;
   resetAll();
+}
+
+function removeParticipant(name){
+  if(!confirm(name+'을(를) 삭제하시겠습니까?'))return;
+  participants=participants.filter(function(n){return n!==name});
+  onParticipantsLoaded();
 }
 
 async function loadParticipants(){
