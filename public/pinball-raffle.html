@@ -45,7 +45,9 @@ body{background:#f5f0e8;font-family:'Noto Sans KR',sans-serif;color:#333;min-hei
 .chips-wrap{display:none;flex-wrap:wrap;gap:6px;padding:10px 0 4px}
 .chips-wrap.show{display:flex}
 .chip{font-size:11px;font-weight:500;color:#4a6b5a;background:#eef2eb;border:1px solid #d5dccc;border-radius:20px;padding:4px 12px;white-space:nowrap}
-.game-row{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
+.start-row{margin-bottom:16px}
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.game-col{position:relative;display:inline-block}
 .game-col canvas{display:block;border-radius:12px;border:2px solid #d5d0c5;background:#faf6ee}
 .step-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;color:#999;margin-bottom:8px}
 .winners{display:none;flex-direction:column;gap:8px}
@@ -59,7 +61,7 @@ body{background:#f5f0e8;font-family:'Noto Sans KR',sans-serif;color:#333;min-hei
 .confetti-piece{position:fixed;z-index:9999;pointer-events:none}
 .depth-bar{position:absolute;right:6px;top:10px;bottom:10px;width:4px;background:rgba(0,0,0,.08);border-radius:2px;pointer-events:none}
 .depth-pip{position:absolute;right:5px;width:6px;height:6px;background:#c8a84b;border-radius:50%;transition:top .3s;pointer-events:none}
-@media(max-width:760px){.top-row,.game-row{grid-template-columns:1fr}.container{padding:12px}}
+@media(max-width:760px){.top-row,.bottom-row{grid-template-columns:1fr}.container{padding:12px}}
 </style>
 </head>
 <body>
@@ -111,36 +113,35 @@ body{background:#f5f0e8;font-family:'Noto Sans KR',sans-serif;color:#333;min-hei
     </div>
   </div>
 
-  <div class="game-row">
+  <div class="start-row">
+    <div class="step-label">STEP 3</div>
+    <button class="btn btn-gold" id="btnStart" onclick="startGame()" disabled>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      게임 시작하기
+    </button>
+  </div>
+
+  <div class="bottom-row">
     <div class="game-col">
-      <div class="step-label">STEP 3</div>
-      <button class="btn btn-gold" id="btnStart" onclick="startGame()" disabled style="margin-bottom:12px">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        게임 시작하기
-      </button>
-      <div style="position:relative;display:inline-block">
-        <canvas id="gameCanvas"></canvas>
-        <div class="depth-bar"></div>
-        <div class="depth-pip" id="depthPip" style="top:10px"></div>
-      </div>
+      <canvas id="gameCanvas"></canvas>
+      <div class="depth-bar"></div>
+      <div class="depth-pip" id="depthPip" style="top:10px"></div>
     </div>
-    <div>
-      <div class="card" id="allWinnersCard">
-        <div class="card-header"><h2>WINNERS</h2><span class="badge" id="winnerCountBadge">0 / 5</span></div>
-        <div class="tear-line"><div class="cut-l"></div><div class="cut-r"></div></div>
-        <div class="card-body">
-          <div class="winners show" id="allWinnersList">
-            <div class="winner-row" style="opacity:1" id="slot1"><div class="rank">1</div><div class="name" style="color:#ccc">—</div><div class="prize-name"></div></div>
-            <div class="winner-row" style="opacity:1" id="slot2"><div class="rank silver">2</div><div class="name" style="color:#ccc">—</div><div class="prize-name"></div></div>
-            <div class="winner-row" style="opacity:1" id="slot3"><div class="rank bronze">3</div><div class="name" style="color:#ccc">—</div><div class="prize-name"></div></div>
-            <div class="winner-row" style="opacity:1" id="slot4"><div class="rank bronze">4</div><div class="name" style="color:#ccc">—</div><div class="prize-name"></div></div>
-            <div class="winner-row" style="opacity:1" id="slot5"><div class="rank bronze">5</div><div class="name" style="color:#ccc">—</div><div class="prize-name"></div></div>
-          </div>
+    <div class="card" id="allWinnersCard">
+      <div class="card-header"><h2>WINNERS</h2><span class="badge" id="winnerCountBadge">0 / 5</span></div>
+      <div class="tear-line"><div class="cut-l"></div><div class="cut-r"></div></div>
+      <div class="card-body">
+        <div class="winners show" id="allWinnersList">
+          <div class="winner-row" style="opacity:1" id="slot1"><div class="rank">1</div><div class="name" style="color:#ccc">—</div><div class="prize-name"></div></div>
+          <div class="winner-row" style="opacity:1" id="slot2"><div class="rank silver">2</div><div class="name" style="color:#ccc">—</div><div class="prize-name"></div></div>
+          <div class="winner-row" style="opacity:1" id="slot3"><div class="rank bronze">3</div><div class="name" style="color:#ccc">—</div><div class="prize-name"></div></div>
+          <div class="winner-row" style="opacity:1" id="slot4"><div class="rank bronze">4</div><div class="name" style="color:#ccc">—</div><div class="prize-name"></div></div>
+          <div class="winner-row" style="opacity:1" id="slot5"><div class="rank bronze">5</div><div class="name" style="color:#ccc">—</div><div class="prize-name"></div></div>
         </div>
-        <div class="card-body" style="padding-top:0">
-          <button class="btn btn-gold" id="btnContinue" style="display:none" onclick="continueRaffle()">나머지 추첨하기</button>
-          <button class="btn btn-outline" id="btnResetAll" style="display:none" onclick="resetAll()">처음부터 다시하기</button>
-        </div>
+      </div>
+      <div class="card-body" style="padding-top:0">
+        <button class="btn btn-gold" id="btnContinue" style="display:none" onclick="continueRaffle()">나머지 추첨하기</button>
+        <button class="btn btn-outline" id="btnResetAll" style="display:none" onclick="resetAll()">처음부터 다시하기</button>
       </div>
     </div>
   </div>
