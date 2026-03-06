@@ -62,6 +62,7 @@ export default function WeddingReception() {
                 </div>
                 <p className="font-[var(--font-noto-sans)] text-[14px] font-medium text-[#333]">
                   D&apos;Maris An Phu
+                  <span className="text-[12px] font-normal text-[#999] ml-1">Room# CR5</span>
                 </p>
                 <p className="font-[var(--font-jetbrains)] text-[13px] text-[#6B8E7B] mt-1">
                   26.03.07 18:30
